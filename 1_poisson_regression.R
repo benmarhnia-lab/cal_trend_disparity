@@ -11,15 +11,15 @@ library(data.table)
 ## read in site list
 ##################
 setwd("")
-dataset <- "zcta_041223"
+dataset <- "data/mock_data"
 
 years <- 2006:2019
 
-siteList <- read.csv(file.path("results", "Countylist_50yearp5w_192.csv"),
+siteList <- read.csv(file.path("data", "Countylist_50yearp5w_192_clean.csv"),
                      colClasses=c(zcta5="character"))
 ##################
 
-# Default computes national basic estimate for 1999-2013
+# Default computes national basic estimate for 2006-2019
 ##################
 cmdOpts <- c(
   'nl.trend', ## Sensitivity: Non-linear PM2.5-HA trend with internal knot=2 at quantile locations

@@ -9,7 +9,6 @@
 library(tlnise)
 
 setwd("")
-dataset <- "zcta_041223"
 years <- 2006:2019
 
 ## create a directory for storing organized estimates from first-stage model
@@ -22,7 +21,7 @@ if (!file.exists(outdir2)) dir.create(outdir2)
 outdir3  <- "results/summary"    
 if (!file.exists(outdir3)) dir.create(outdir3)
 
-siteList <- read.csv(file.path("results", "Countylist_50yearp5w_192.csv"),
+siteList <- read.csv(file.path("data", "Countylist_50yearp5w_192_clean.csv"),
                      colClasses=c(zcta5="character"))
 
 # Default computes df=8 no subgroup analysis with 2 regions, no comparison
@@ -206,16 +205,9 @@ est.title
 results <- read.csv(est.title, colClasses = c(zcta5="character"))
 
 ## load zcta5s to include and regions of each county--need to update if region is considered 102720
-meta <- read.csv(file.path("results", "Countylist_50yearp5w_192.csv"),
-                 colClasses=c(zcta5="character"))
+meta <- siteList
 meta$region <- "State"
-meta <- meta[, c("zcta5", "region")]
-
-wf <- readRDS(file.path("results", 
-                         "summary of wildfire metrics by year.rds"))
-wf <- wf[wf$zcta5 %in% meta$zcta5, ]
-wf$region <- factor(as.numeric(wf$wf_above35u_0619), labels = c("NoWFabove35", "SomeWFabove35"))
-meta <- rbind(meta, wf[, c("zcta5", "region")])
+meta <- rbind(meta, siteList)
 
 ### estimation of second-stage model parameters
 for(nm_ in nm){

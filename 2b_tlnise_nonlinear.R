@@ -22,7 +22,7 @@ outdir3  <- "results/summary"
 if (!file.exists(outdir3)) dir.create(outdir3)
 
 ## read in list of zctas
-siteList <- read.csv(file.path("results", "Countylist_50yearp5w_192.csv"),
+siteList <- read.csv(file.path("data", "Countylist_50yearp5w_192_clean.csv"),
                      colClasses=c(zcta5="character"))
 
 # Default computes df=8 no subgroup analysis with 2 regions
@@ -215,16 +215,9 @@ est.title
 #RunTLNISE and orgnize results -- nltrend
 ##################
 ## load zctas to include and regions of each county--need to update if region is considered 102720
-meta <- read.csv(file.path("results", "Countylist_50yearp5w_192.csv"),
-                 colClasses=c(zcta5="character"))
+meta <- siteList
 meta$region <- "State"
-meta <- meta[, c("zcta5", "region")]
-
-wf <- readRDS(file.path("results", 
-                        "summary of wildfire metrics by year.rds"))
-wf <- wf[wf$zcta5 %in% meta$zcta5, ]
-wf$region <- factor(as.numeric(wf$wf_above35u_0619), labels = c("NoWFabove35", "SomeWFabove35"))
-meta <- rbind(meta, wf[, c("zcta5", "region")])
+meta <- rbind(meta, siteList)
 
 for (j in 1:length(nltrend.df)) {
   lags <- unlist(bar[j])
