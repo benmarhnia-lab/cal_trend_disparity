@@ -2,13 +2,17 @@
 ### To organize poisson regression results without considering temporal trend
 ### and to apply TLNISE to aggregate to state level
 ### written by Chen Chen 
+### Note: search for "please update before run" to make edits where necessary;
 ###################
-## Installation of tlnise--might require installation of rtools as well
+
+## Installation of tlnise package
+## Here is a link to the package: https://github.com/rdpeng/tlnise
+## You will also need a Fortran compiler installed to compile the Fortran code
 # install.packages("remotes")
 # remotes::install_github("rdpeng/tlnise")
 library(tlnise)
 
-setwd("")
+setwd("") ## please update before run
 years <- 2006:2019
 
 ## create a directory for storing organized estimates from first-stage model
@@ -24,10 +28,10 @@ if (!file.exists(outdir3)) dir.create(outdir3)
 siteList <- read.csv(file.path("data", "Countylist_50yearp5w_192_clean.csv"),
                      colClasses=c(zcta5="character"))
 
-# Default computes df=8 no subgroup analysis with 2 regions, no comparison
+# Default computes effect for moving average exposures of days 0-2, no regional analysis, no comparison across periods
 ##################
 cmdOpts <- c(
-  'lagtest', ## whether to calcualte single lags and m01
+  'lagtest', ## whether to calcualte single lags, m01 and m02
   'comp2p', ## decide whether to compare two periods
   'region' ## whether to include analysis for regions
 )
@@ -44,13 +48,19 @@ for(i in seq(along = cmdOpts)) {
 }
 ##################
 
-# Set the stage
+## Set the stage
+## need to specify whether to run multiple lags, comparison across periods and 
+## regional analysis, and which subgroup to analyze
 ##################
-lagtest <- T
-comp2p <- c("06-12", "13-19")
-region <- T #I have not incorporated this feature into analysis 102720
+## please update before run
+lagtest <- T ## calcualte single lags, m01 and m02
+comp2p <- c("06-12", "13-19") ## compare two periods
+region <- T ## include analysis for regions (ie, with and without intense wildfire)
 
-nm <- c ( # can only analyze one subgroup at a time due to data structure
+## please update before run
+## can only analyze one subgroup in a big loop due to data structure
+## please only leave one subgroup here
+nm <- c ( 
   # "age65up"# look at age 65 and older
   # "age15to64"
   # "age0to14"
@@ -64,6 +74,9 @@ nm <- c ( # can only analyze one subgroup at a time due to data structure
   # "other"
   "" # look at total group
 ) 
+
+## End of updates before run
+
 
 yr <- c(  # decide which years to analyze
   "06-19",
@@ -204,7 +217,7 @@ est.title
 ##################
 results <- read.csv(est.title, colClasses = c(zcta5="character"))
 
-## load zcta5s to include and regions of each county--need to update if region is considered 102720
+## assign zctas to different regions (eg, with and without intense wildfire)
 meta <- siteList
 meta$region <- "State"
 meta <- rbind(meta, siteList)

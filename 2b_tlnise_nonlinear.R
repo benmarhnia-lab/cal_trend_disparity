@@ -2,13 +2,19 @@
 ### To organize poisson regression results with nonlinear temporal trend
 ### and to apply TLNISE to aggregate to state level
 ### written by Chen Chen
+### Note: search for "please update before run" to make edits where necessary;
 ###################
+
+## Installation of tlnise package
+## Here is a link to the package: https://github.com/rdpeng/tlnise
+## You will also need a Fortran compiler installed to compile the Fortran code
+# install.packages("remotes")
+# remotes::install_github("rdpeng/tlnise")
 library(tlnise)
 library(MASS)
 library(splines)
 
-setwd("")
-dataset <- "zcta_041223"
+setwd("") ## please update before run
 years <- 2006:2019
 
 ## create a directory for storing organized estimates from first-stage model
@@ -25,10 +31,10 @@ if (!file.exists(outdir3)) dir.create(outdir3)
 siteList <- read.csv(file.path("data", "Countylist_50yearp5w_192_clean.csv"),
                      colClasses=c(zcta5="character"))
 
-# Default computes df=8 no subgroup analysis with 2 regions
+# Default computes computes effect for moving average exposures of days 0-2, no regional analysis
 ##################
 cmdOpts <- c(
-  'lagtest',  ## Sensititivty: 0-3 single lags
+  'lagtest',  ## Sensititivty: 0-3 single lags, m01 and m02
   'region' ## whether to include analysis for regions
 )
 
@@ -44,12 +50,18 @@ for(i in seq(along = cmdOpts)) {
 }
 ##################
 
-#Set the stage
+## Set the stage
+## need to specify whether to run multiple lags or regional analysis, 
+## and which subgroup to analyze
 ##################
-lagtest <- T
-# region <- T
+## please update before run
+lagtest <- T ## calcualte single lags, m01 and m02
+region <- T ## include analysis for regions (ie, with and without intense wildfire)
 
-nm <- c ( # can only analyze one subgroup at a time due to data structure
+## please update before run
+## can only analyze one subgroup in a big loop due to data structure
+## please only leave one subgroup here
+nm <- c ( 
   # "age65up"# look at age 65 and older
   # "age15to64"
   # "age0to14"
@@ -63,6 +75,9 @@ nm <- c ( # can only analyze one subgroup at a time due to data structure
   # "other"
   "" # look at total group
 ) 
+
+## End of updates before run
+
 
 outcomes <- c(  # Outcomes to consider
   "circulatory", 
@@ -78,7 +93,7 @@ if (lagtest) {
 } else {
   n.lag <- "m02mi"
 }
-nltrend.df <- 1:5 ## since I manually calculated the knots, df=# of knots=terms-2=ns df -1. In theory number of internal knots = df - 1, terms = df + 1
+nltrend.df <- 4 ## since I manually calculated the knots, df=# of knots=terms-2=ns df -1. In theory number of internal knots = df - 1, terms = df + 1
 nltrend.knots <- lapply(nltrend.df, function(a) {
   ceiling(quantile(0:13, probs=(1:a)/(a+1)))
 })
@@ -214,7 +229,7 @@ est.title
 ##
 #RunTLNISE and orgnize results -- nltrend
 ##################
-## load zctas to include and regions of each county--need to update if region is considered 102720
+## assign zctas to different regions (eg, with and without intense wildfire)
 meta <- siteList
 meta$region <- "State"
 meta <- rbind(meta, siteList)

@@ -1,6 +1,10 @@
 ##################
-# Time-series trend first stage model for PM2.5 in California
-# written by Chen Chen, based on Roger Peng's codes for NMMAPS
+## Time-series trend first stage model for PM2.5 in California
+## written by Chen Chen, based on Roger Peng's codes for NMMAPS
+## Note: 1. search for "please update before run" to make edits where necessary;
+## 2. error messages on glm failed to converge is expected in some subgroup
+## analysis due to low counts of acute care utilizations. Such zctas are excluded
+## from next step analyses and noted in the manuscript;
 ##################
 
 library(zoo)
@@ -10,7 +14,7 @@ library(data.table)
 
 ## read in site list
 ##################
-setwd("")
+setwd("") ## please update before run
 dataset <- "data/mock_data"
 
 years <- 2006:2019
@@ -19,7 +23,7 @@ siteList <- read.csv(file.path("data", "Countylist_50yearp5w_192_clean.csv"),
                      colClasses=c(zcta5="character"))
 ##################
 
-# Default computes national basic estimate for 2006-2019
+# Default computes national basic estimate for moving exposure averages of days 0-2 and entire population
 ##################
 cmdOpts <- c(
   'nl.trend', ## Sensitivity: Non-linear PM2.5-HA trend with internal knot=2 at quantile locations
@@ -38,25 +42,35 @@ for(i in seq(along = cmdOpts)) {
 }
 ##################
 
-# Set the stage--please update before run
+## Set the stage
+## need to specify whether we are running lag test (lagtest) and non-linear trend model (nltrend)
+## also need to select the subpopulation--running stratified subgroup analyses
+## using the mock dataset will lead to many failures in convergence, not recommended
 ##################
-lagtest <- T # whether to run m01, single lag 0-3
-nl.trend <- T  # estimate non-linear temporal trend with knots at quantile
+## please update before run
+lagtest <- T # run m02, m01, and single lag 0-3--comment out if only want to run m02 (moving averages of days 0-2)
+# nl.trend <- T  # estimate non-linear temporal trend with knots at quantile--comment out if running base model
 
-nms <- c ( # can only analyze one subgroup at a time due to data structure
-  "age65up", # look at age 65 and older
-  "age15to64",
-  "age0to14",
-  "female",
-  "male",
-  "white",
-  "black",
-  "hispanic",
-  "asian",
-  "native",
-  "other",
+## please update before run
+## please comment out subgroups that should not be ran, multiple subgroups can be
+## ran in one big loop
+nms <- c (
+  # "age65up", # look at age 65 and older
+  # "age15to64",
+  # "age0to14",
+  # "female",
+  # "male",
+  # "white",
+  # "black",
+  # "hispanic",
+  # "asian",
+  # "native",
+  # "other",
   "" # look at total group
 ) 
+
+## End of updates before run
+
 
 yr <- if (nl.trend) {
   "06-19"
@@ -82,14 +96,10 @@ if (lagtest) {
   n.lag <- "m02mi"  # use moving average of lag0 to 2
 }
 
-dfVec <- if (nl.trend) {
-  c(3, 8, 13, 18)
-} else {
-  13
-}
+dfVec <- 13
 
 if (nl.trend) {
-  nltrend.df <- 1:5 ## since I manually calculated the knots, df=# of knots=terms-2=ns df -1. In theory number of internal knots = df - 1, terms = df + 1
+  nltrend.df <- 4 ## since I manually calculated the knots, df=# of knots=terms-2=ns df -1. In theory number of internal knots = df - 1, terms = df + 1
   nltrend.knots <- sapply(nltrend.df, function(a) {
     paste(ceiling(quantile(0:13, probs=(1:a)/(a+1))), collapse = ",")
   })
@@ -130,7 +140,7 @@ polls <- if (nl.trend) {
 ## Create output directory if it doesn't already exist
 outdir <- "results/raw-results"
 
-if (!file.exists(outdir)) dir.create(outdir)
+if (!file.exists(outdir)) dir.create(outdir, recursive = TRUE)
 
 ## Cache directory
 if (!file.exists(file.path(outdir, "cache"))) dir.create(file.path(outdir, "cache"))
@@ -253,15 +263,10 @@ postProcess <- function(  # Post process glm object; extract various entities
   V <- vcov(glmObject)
   
   ## Only keep coefficients corresponding to pollutant variable
-  if (seasonal) {
-    i <- grep("mean_pm25", rownames(cc), fixed = TRUE)
-    j <- grep("mean_pm25", rownames(V), fixed = TRUE)
-  } else {
-    i <- lapply(poll, function(x) grep(x, rownames(cc), fixed = TRUE))
-    i <- unique(unlist(i))
-    j <- lapply(poll, function(x) grep(x, rownames(V), fixed = TRUE))
-    j <- unique(unlist(j))
-  }
+  i <- lapply(poll, function(x) grep(x, rownames(cc), fixed = TRUE))
+  i <- unique(unlist(i))
+  j <- lapply(poll, function(x) grep(x, rownames(V), fixed = TRUE))
+  j <- unique(unlist(j))
   
   if(length(i) == 0) ## No match
     stop("pollutant coefficients not found in model fit")
@@ -351,8 +356,6 @@ for (nm in nms) {
       
       outfile <- if (nl.trend) {
         file.path(outdir, paste("results", "nltrend", outcome, yr_,"rds", sep = "."))
-      } else if (dftest) {
-        file.path(outdir, paste("results", "dftest", outcome, yr_,"rds", sep = "."))
       } else {
         file.path(outdir, paste("results", outcome, yr_,"rds", sep = "."))
       }
