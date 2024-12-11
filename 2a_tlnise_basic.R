@@ -5,6 +5,10 @@
 ### Note: search for "please update before run" to make edits where necessary;
 ###################
 
+## (IMPORTANT) to make the tlnise:::sampleGamma funciton work, use R version < 4.4.0
+## because NCOL(NULL) returns 0 instead of 1 in newer versions of R
+## error message: Error in matrix(unlist(Z2), nrow = ncol(Y) * NCOL(W)) : data is too long
+
 ## Installation of tlnise package
 ## Here is a link to the package: https://github.com/rdpeng/tlnise
 ## You will also need a Fortran compiler installed to compile the Fortran code
